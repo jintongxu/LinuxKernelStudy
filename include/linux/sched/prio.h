@@ -13,7 +13,8 @@
  * values are inverted: lower p->prio value means higher priority.
  */
 
-#define MAX_RT_PRIO		100
+// 表示该进程所属调度器的类
+#define MAX_RT_PRIO		100  
 
 #define MAX_PRIO		(MAX_RT_PRIO + NICE_WIDTH)
 #define DEFAULT_PRIO		(MAX_RT_PRIO + NICE_WIDTH / 2)

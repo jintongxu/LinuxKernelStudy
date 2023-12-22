@@ -2147,38 +2147,50 @@ extern const u32		sched_prio_to_wmult[40];
 
 #define RETRY_TASK		((void *)-1UL)
 
+// 调度类sched_class结构体如下：
 struct sched_class {
 
 #ifdef CONFIG_UCLAMP_TASK
 	int uclamp_enabled;
 #endif
 
+/* 将进程加入到执行队列当中，即将调度实体（进程）存放到红黑树当中，并对nr_running变量自动加1 */
 	void (*enqueue_task) (struct rq *rq, struct task_struct *p, int flags);
+  /* 从执行队列中删除进程，并对nr_running变量自动减1 */
 	void (*dequeue_task) (struct rq *rq, struct task_struct *p, int flags);
+  /* 放弃CPU的执行权限，实际上此函数执行先出队后入队，在这种情况下它直接将调度实体存放在红黑树的最右端 */
 	void (*yield_task)   (struct rq *rq);
 	bool (*yield_to_task)(struct rq *rq, struct task_struct *p);
 
+  /* 专门用于检查当前进程是否可被新进程抢占 */
 	void (*check_preempt_curr)(struct rq *rq, struct task_struct *p, int flags);
 
+  /* 选择下一个要运行的进程 */
 	struct task_struct *(*pick_next_task)(struct rq *rq);
 
+  /* 将进程放到运行队列当中 */
 	void (*put_prev_task)(struct rq *rq, struct task_struct *p);
 	void (*set_next_task)(struct rq *rq, struct task_struct *p, bool first);
 
 #ifdef CONFIG_SMP
 	int (*balance)(struct rq *rq, struct task_struct *prev, struct rq_flags *rf);
+  /* 为进程选择一个合适的CPU */
 	int  (*select_task_rq)(struct task_struct *p, int task_cpu, int flags);
 
 	struct task_struct * (*pick_task)(struct rq *rq);
 
+  /* 迁移任务到另一个CPU */
 	void (*migrate_task_rq)(struct task_struct *p, int new_cpu);
 
+  /* 专门用于唤醒进程 */
 	void (*task_woken)(struct rq *this_rq, struct task_struct *task);
 
+  /* 修改进程在CPU的亲和力 */
 	void (*set_cpus_allowed)(struct task_struct *p,
 				 const struct cpumask *newmask,
 				 u32 flags);
 
+  /* 启动/禁止运行队列 */
 	void (*rq_online)(struct rq *rq);
 	void (*rq_offline)(struct rq *rq);
 
@@ -2251,11 +2263,11 @@ extern struct sched_class __sched_class_lowest[];
 
 #define sched_class_above(_a, _b)	((_a) < (_b))
 
-extern const struct sched_class stop_sched_class;
-extern const struct sched_class dl_sched_class;
-extern const struct sched_class rt_sched_class;
-extern const struct sched_class fair_sched_class;
-extern const struct sched_class idle_sched_class;
+extern const struct sched_class stop_sched_class; // 停机调度类
+extern const struct sched_class dl_sched_class;  // 期限调度类
+extern const struct sched_class rt_sched_class;  // 实时调度类
+extern const struct sched_class fair_sched_class;  // 公平调度类
+extern const struct sched_class idle_sched_class;  // 空闲调度类
 
 static inline bool sched_stop_runnable(struct rq *rq)
 {
