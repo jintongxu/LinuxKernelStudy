@@ -1535,6 +1535,7 @@ static void dequeue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags)
 /*
  * Adding/removing a task to/from a priority array:
  */
+// 更新调度新信息，将调度实体插入到响应优先队列的末尾
 static void
 enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 {
@@ -1552,11 +1553,13 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 		enqueue_pushable_task(rq, p);
 }
 
+// 删除进程
 static void dequeue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 {
 	struct sched_rt_entity *rt_se = &p->rt;
 
-	update_curr_rt(rq);
+	update_curr_rt(rq);  // 更新调度数据信息等等
+  // 将rt_se从运行队列中删除，然后添加到队列末尾
 	dequeue_rt_entity(rt_se, flags);
 
 	dequeue_pushable_task(rq, p);
@@ -1777,13 +1780,14 @@ static struct sched_rt_entity *pick_next_rt_entity(struct rt_rq *rt_rq)
 	struct list_head *queue;
 	int idx;
 
+// 第一个找到一个可用的实体
 	idx = sched_find_first_bit(array->bitmap);
 	BUG_ON(idx >= MAX_RT_PRIO);
 
-	queue = array->queue + idx;
+	queue = array->queue + idx; // 从链表组中找到对应的链表
 	next = list_entry(queue->next, struct sched_rt_entity, run_list);
 
-	return next;
+	return next; // 返回找到运行实体
 }
 
 static struct task_struct *_pick_next_task_rt(struct rq *rq)
@@ -2680,14 +2684,15 @@ static unsigned int get_rr_interval_rt(struct rq *rq, struct task_struct *task)
 
 DEFINE_SCHED_CLASS(rt) = {
 
-	.enqueue_task		= enqueue_task_rt,
-	.dequeue_task		= dequeue_task_rt,
-	.yield_task		= yield_task_rt,
+	.enqueue_task		= enqueue_task_rt,    // 将一个task存放到就绪队列或者队尾
+	.dequeue_task		= dequeue_task_rt,    // 将一个task从就绪队列尾部
+	.yield_task		= yield_task_rt,       // 主动放弃执行
 
 	.check_preempt_curr	= check_preempt_curr_rt,
 
+  // 核心调度器选择就绪队列中哪个任务将要被调度，prev是将要被调度出的任务，反沪指是将要被调度的任务
 	.pick_next_task		= pick_next_task_rt,
-	.put_prev_task		= put_prev_task_rt,
+	.put_prev_task		= put_prev_task_rt,   // 当一个任务将要被调度时执行
 	.set_next_task          = set_next_task_rt,
 
 #ifdef CONFIG_SMP
