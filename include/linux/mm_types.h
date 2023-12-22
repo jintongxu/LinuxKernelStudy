@@ -433,7 +433,7 @@ struct vm_area_struct {
 	 * Access permissions of this VMA.
 	 * See vmf_insert_mixed_prot() for discussion.
 	 */
-	pgprot_t vm_page_prot;
+	pgprot_t vm_page_prot; // 保护位，即权限位
 	unsigned long vm_flags;		/* Flags, see mm.h. */
 
 	/*
@@ -443,7 +443,7 @@ struct vm_area_struct {
 	 * For private anonymous mappings, a pointer to a null terminated string
 	 * containing the name given to the vma, or NULL if unnamed.
 	 */
-
+/* 为了支持查询一个文件区间被映射到哪些虚拟内存区域，把一个文件映射到的所有虚拟内存区域加入该文件的地址空间结构 */
 	union {
 		struct {
 			struct rb_node rb;
@@ -462,18 +462,20 @@ struct vm_area_struct {
 	 * can only be in the i_mmap tree.  An anonymous MAP_PRIVATE, stack
 	 * or brk vma (with NULL file) can only be in an anon_vma list.
 	 */
+  /* 把虚拟内存区域关联的所有anon_vma实例串联起来，一个虚拟内存区域会关联到父进程的anon_vma实例和自己的anon_vma实例 */
 	struct list_head anon_vma_chain; /* Serialized by mmap_lock &
 					  * page_table_lock */
+  /* 指向一个anon_vma实例，结构anon_vma用来组织匿名页被映射到的所有虚拟地址空间 */
 	struct anon_vma *anon_vma;	/* Serialized by page_table_lock */
 
 	/* Function pointers to deal with this struct. */
-	const struct vm_operations_struct *vm_ops;
+	const struct vm_operations_struct *vm_ops;  // 文件偏移，单位是页
 
 	/* Information about our backing store: */
 	unsigned long vm_pgoff;		/* Offset (within vm_file) in PAGE_SIZE
 					   units */
-	struct file * vm_file;		/* File we map to (can be NULL). */
-	void * vm_private_data;		/* was vm_pte (shared mem) */
+	struct file * vm_file;		/* File we map to (can be NULL). */ // 文件，如果是私有的匿名映射，该成员是空指针
+	void * vm_private_data;		/* was vm_pte (shared mem) */ // 指向内存区的私有数据
 
 #ifdef CONFIG_SWAP
 	atomic_long_t swap_readahead_info;
